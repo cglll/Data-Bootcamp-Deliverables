@@ -6,7 +6,7 @@ from cryptography.fernet import Fernet
 import os
 
 # fernet_key = Fernet.generate_key()
-# os.environ["AIRFLOW__CORE__FERNET_KEY"] = fernet_key.decode()
+# os.environ["AIRFLOW__CORE__FERNET_KEY"] = "Y0ZCeE0wdFJZVFphTkVveE5IaFJjRGhrWmpCamJ6RlJhak5vZVZwclIxaz0="
 
 default_args = {
     'owner': 'geovanni.velazquez',
@@ -15,7 +15,7 @@ default_args = {
     'retry_delay': timedelta(minutes=5)
 }
 
-dag = DAG('dag_insert_data_postgres',
+dag = DAG('dag_insert_data_postgres', 
           default_args=default_args,
           schedule_interval='@once')
 
