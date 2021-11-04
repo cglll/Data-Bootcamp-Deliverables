@@ -7,9 +7,11 @@ from airflow.models import BaseOperator
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from airflow.providers.amazon.aws.utils.redshift import build_credentials_block
 from airflow.providers.postgres.hooks.postgres import PostgresHook
+from airflow.contrib.operators.s3_list_operator import S3ListOperator
 import pandas as pd
 import io
 import os.path
+import numpy as np
 
 AVAILABLE_METHODS = ['APPEND', 'REPLACE', 'UPSERT']
 
@@ -135,7 +137,7 @@ class S3ToPostgresOperator(BaseOperator):
         """
         s3_key_bucket = self.pg_s3_input()
         df_products, list_content = self.s3_object_to_df(s3_key_bucket)
-        self.create_db_table(list_content)
+        self.create_db_table(df_products)
         self.print_table()
 
     def pg_s3_input(self):
@@ -169,6 +171,8 @@ class S3ToPostgresOperator(BaseOperator):
             if not self.s3.check_for_key(self.s3_key, self.s3_bucket):
                 raise AirflowException("The key {0} does not exist".
                                        format(self.s3_key))
+            s3_key_bucket = self.s3.get_key(self.s3_key,
+                                                    self.s3_bucket)
 
         return s3_key_bucket
 
@@ -188,29 +192,35 @@ class S3ToPostgresOperator(BaseOperator):
             list_content: str
                 S3 file as a single string.
         """
+        self.log.info('s3_key_bucket', s3_key_bucket)
+        self.log.info('all buckets', S3ListOperator(task_id='list_3s_files',
+                                                    bucket=self.s3_bucket, 
+                                                    prefix='de-bootcamp',
+                                                    aws_conn_id='aws_default'))
         list_content = s3_key_bucket.get()['Body'].read() \
             .decode(encoding='utf-8', errors='ignore')
 
         schema = {
-            'InvoiceNo': int,
+            'InvoiceNo': str,
             'StockCode': str,
             'Description': str,
             'Quantity': int,
+            'InvoiceDate': str,
             'UnitPrice': 'float64',
-            'CustomerID': int,
+            'CustomerID': 'float64',
             'Country': str
         }
-
+        
         df_products = pd.read_csv(io.StringIO(list_content),
                                   header=0,
                                   delimiter=',',
                                   low_memory=False,
                                   dtype=schema)
-        self.log.info('Pandas df created', df_products)
-
+        
+        df_products.replace(np.nan, None, inplace=True)
         return df_products, list_content
 
-    def create_db_table(self, list_content):
+    def create_db_table(self, df_products):
         """
         Based on a .sql file it creates the table in the given database.
 
@@ -220,8 +230,11 @@ class S3ToPostgresOperator(BaseOperator):
         Returns:
             None
         """
-        file_path = 'debootcamp.products.sql'
+        file_path = 'dags/repo/debootcamp.products.sql'
 
+        
+        self.log.info("all content", os.listdir())
+            
         with open(file_path, "r", encoding="UTF-8") as sql_file:
             sql_create_table_cmd = sql_file.read()
             sql_file.close()
@@ -234,7 +247,8 @@ class S3ToPostgresOperator(BaseOperator):
                          'InvoiceDate', 'UnitPrice', 'CustomerID', 'Country']
 
         self.current_table = self.schema + '.' + self.table
-        self.pg_hook.insert_rows(self.current_table, list_content,
+        df_row_list = [tuple(x) for x in df_products.to_numpy()]
+        self.pg_hook.insert_rows(self.current_table, df_row_list,
                                  target_fields=target_fields, commit_every=1000,
                                  replace=False)
 
@@ -254,7 +268,7 @@ class S3ToPostgresOperator(BaseOperator):
         cursor.execute(request)
         source = cursor.fetchall()
 
-        for row in source:
+        for cnt, row in enumerate(source):
             self.log.info("InvoiceNo: {0} - \
                           StockCode: {1} - \
                           Description: {2} - \
@@ -265,3 +279,5 @@ class S3ToPostgresOperator(BaseOperator):
                           Country: {7} ".
                           format(row[0], row[1], row[2], row[3],
                                  row[4], row[5], row[6], row[7]))
+            if cnt > 50:
+                break
