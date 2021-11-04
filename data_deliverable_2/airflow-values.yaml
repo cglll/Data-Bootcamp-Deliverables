@@ -41,5 +41,11 @@ logs:
 # ----------------------------------------------------------------
 # Tried adding fernet key to fix "cryptography.fernet.InvalidToken" error
 # without success.
-# airflow:
-  # fernetKey: "Y0ZCeE0wdFJZVFphTkVveE5IaFJjRGhrWmpCamJ6RlJhak5vZVZwclIxaz0="
+airflow:
+  AIRFLOW__WEBSERVER__LOG_FETCH_TIMEOUT_SEC: 30
+  log_fetch_delay_sec: 30
+  config:
+    core:
+      AIRFLOW__CORE__HOSTNAME_CALLABLE: airflow.hostname_resolver:resolve
+      AIRFLOW__CORE__FERNET_KEY: "Y0ZCeE0wdFJZVFphTkVveE5IaFJjRGhrWmpCamJ6RlJhak5vZVZwclIxaz0="
+
