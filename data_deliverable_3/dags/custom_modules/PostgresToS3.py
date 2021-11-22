@@ -131,6 +131,7 @@ class PostgresToS3Operator(BaseOperator):
         Returns:
             None
         """
+        # get staging layer unique bucket name in XCom
         task_instance = context['task_instance']
         value = task_instance.xcom_pull(task_ids="get_s3_bucket_names")
         self.s3_bucket = value["staging"]
