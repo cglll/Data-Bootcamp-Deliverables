@@ -158,9 +158,8 @@ class PostgresToS3Operator(BaseOperator):
         self.s3 = S3Hook(aws_conn_id=self.aws_conn_id, verify=self.verify)
 
         self.log.info("Downloading Postgres table: {0}".format(self.s3))
-
-        request = "SELECT * FROM " + "debootcamp.products" + \
-                  " WHERE InvoiceNo = '536367' LIMIT 3"
+        self.current_table = self.schema + '.' + self.table
+        request = "SELECT * FROM " + self.current_table
         connection = self.pg_hook.get_conn()
         cursor = connection.cursor()
         cursor.execute(request)
