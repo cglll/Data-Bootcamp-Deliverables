@@ -83,7 +83,8 @@ def get_bucket_name():
     buckets = {"raw": raw_name, "staging": staging_name}
     return buckets
 
-
+# DAG Start
+# ----------------------------------------------------------------------------
 default_args = {
     'owner': 'geovanni.velazquez',
     'depends_on_past': False,
