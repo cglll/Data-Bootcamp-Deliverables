@@ -44,10 +44,6 @@ CONFIGURATION_OVERRIDES_ARG = {
         }
     ],
     "monitoringConfiguration": {
-        "cloudWatchMonitoringConfiguration": {
-            "logGroupName": "/emr-on-eks/eksworkshop-eksctl",
-            "logStreamNamePrefix": "pi"
-        },
         "s3MonitoringConfiguration": {
             "logUri": "s3://spark-test-samp"
         }
@@ -72,14 +68,12 @@ def get_bucket_name():
     s3 = AwsBaseHook(aws_conn_id="aws_default", client_type="s3")
     response = s3.conn.list_buckets()
     bucket_names = [bucket["Name"] for bucket in response["Buckets"]]
-    raw_name = ""
-    staging_name = ""
+    buckets = {}
     for i in bucket_names:
         if i.startswith("raw-layer"):
-            raw_name = i
-        if i.startswith("staging-layer"):
-            staging_name = i
-    buckets = {"raw": raw_name, "staging": staging_name}
+            buckets["raw"] = i
+        elif i.startswith("staging-layer"):
+            buckets["staging"] = i
     return buckets
 
 # DAG Start
