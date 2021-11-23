@@ -2,6 +2,8 @@ from pyspark.ml.feature import RegexTokenizer
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import array_contains, when
 
+# Spark job which classifies the reviews from the movie_review.csv file.
+# Assigns a 1 for each row containing the word "good" else a 0
 
 if __name__ == "__main__":
     spark = SparkSession.builder.appName("Test_spark")\
