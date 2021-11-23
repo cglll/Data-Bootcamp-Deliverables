@@ -14,6 +14,12 @@ from s3_to_postgres import S3ToPostgresOperator
 from postgres_to_s3 import PostgresToS3Operator
 from airflow.operators.python import PythonOperator
 
+# Pipeline for the data engineering bootcamp which transforms the
+# movie_reviews.csv file. At the same time as a parallel job it
+# transfers the user_purchase.csv file from S3 to postgres and back
+# to S3.
+
+
 # [START EMRContainer operator variables]
 virtual_cluster_id = '{{conn.aws_default.extra_dejson["virtual_cluster_id"]}}'
 JOB_ROLE_ARN = "arn:aws:iam::855157247171:role/EMRContainers-JobExecutionRole"
