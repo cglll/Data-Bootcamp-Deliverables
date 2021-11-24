@@ -117,8 +117,6 @@ with dag:
     pg_to_staging = PostgresToS3Operator(task_id='postgres_to_staging_layer',
                                          schema='debootcamp',
                                          table='products',
-                                         s3_bucket='de-bootcamp-airflow-data',
-                                         s3_key='sample.csv',
                                          postgres_conn_id='postgres_default',
                                          aws_conn_id='aws_default',
                                          dag=dag
