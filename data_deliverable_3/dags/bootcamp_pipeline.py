@@ -31,8 +31,8 @@ JOB_DRIVER_ARG = {
     "sparkSubmitJobDriver": {
         "entryPoint": "s3://spark-test-samp/classify_reviews.py",
         "sparkSubmitParameters": "--conf spark.executors.instances=2"
-                                 " --conf spark.executors.memory=2G"
-                                 " --conf spark.executor.cores=2"
+                                 " --conf spark.executors.memory=1G"
+                                 " --conf spark.executor.cores=1"
                                  " --conf spark.driver.cores=1"
     }
 }
